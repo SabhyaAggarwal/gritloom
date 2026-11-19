@@ -1,0 +1,36 @@
+{
+  "name": "gritloom-local",
+  "displayName": "GritLoom Local Activity",
+  "description": "Privacy-friendly metadata-only activity signals for a local GritLoom agent.",
+  "version": "0.1.0",
+  "publisher": "gritloom",
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "gritloom.pause",
+        "title": "GritLoom: Pause Tracking"
+      },
+      {
+        "command": "gritloom.resume",
+        "title": "GritLoom: Resume Tracking"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SabhyaAggarwal/gritloom"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

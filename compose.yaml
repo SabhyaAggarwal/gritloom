@@ -1,0 +1,22 @@
+services:
+  gritloom:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      GRITLOOM_ENV: ${GRITLOOM_ENV:-development}
+      GRITLOOM_SECURE_COOKIES: ${GRITLOOM_SECURE_COOKIES:-false}
+      GRITLOOM_TRUST_PROXY: ${GRITLOOM_TRUST_PROXY:-false}
+    volumes:
+      - gritloom-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  gritloom-data:

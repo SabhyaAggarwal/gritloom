@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.11'
+          cache: true
+      - name: Check formatting
+        shell: bash
+        run: |
+          files=$(find . -name '*.go' -type f)
+          unformatted=$(gofmt -l $files)
+          test -z "$unformatted" || { printf '%s\n' "$unformatted"; exit 1; }
+      - run: go test -count=1 ./...
+      - run: go test -race -count=1 ./internal/tracking ./internal/agent ./internal/server
+      - run: go vet ./...
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
+      - run: go build ./cmd/server ./cmd/agent
+      - name: Cross-build local agent
+        run: |
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o /tmp/gritloom-agent.exe ./cmd/agent
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o /tmp/gritloom-agent-darwin ./cmd/agent
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /tmp/gritloom-agent-linux-arm64 ./cmd/agent
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm audit --audit-level=moderate
+      - run: npm run build
+      - name: Check integration JavaScript syntax
+        working-directory: .
+        run: |
+          find integrations extensions/vscode -name '*.js' -type f -print0 | xargs -0 -n1 node --check
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: gritloom:ci

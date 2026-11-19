@@ -1,0 +1,9 @@
+/.env
+/data/
+/web/node_modules/
+/web/dist/
+/extensions/vscode/node_modules/
+*.vsix
+*.test
+*.out
+.DS_Store
